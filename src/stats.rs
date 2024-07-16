@@ -1,16 +1,16 @@
 use std::collections::HashMap;
 use std::ffi::OsString;
 use std::fs;
-use std::path::Path;
+use std::path::{Path,PathBuf};
 
 use image_match::cosine_similarity;
 use image_match::image::get_file_signature;
 
-pub fn check_match_percentages() {
-    let orig = calc_sigs_for_pic_dir_files("original");
-    let cropped = calc_sigs_for_pic_dir_files("cropped");
-    let grown = calc_sigs_for_pic_dir_files("grown");
-    let shrunk = calc_sigs_for_pic_dir_files("shrunk");
+pub fn check_match_percentages(dir: &PathBuf) {
+    let orig = calc_sigs_for_pic_dir_files(&dir.join("original"));
+    let cropped = calc_sigs_for_pic_dir_files(&dir.join("cropped"));
+    let grown = calc_sigs_for_pic_dir_files(&dir.join("grown"));
+    let shrunk = calc_sigs_for_pic_dir_files(&dir.join("shrunk"));
 
     print_stats("Cropped", evaluate_altered(&orig, &cropped));
     print_stats("Grown", evaluate_altered(&orig, &grown));
@@ -18,9 +18,8 @@ pub fn check_match_percentages() {
     print_stats("Non-Matching", evaluate_non_matching(&orig));
 }
 
-fn calc_sigs_for_pic_dir_files(dir: &str) -> HashMap<String, Vec<i8>> {
-    println!("Calculating signatures for {}", dir);
-    let pics_root = Path::new("./pics").join(Path::new(dir));
+fn calc_sigs_for_pic_dir_files(pics_root: &PathBuf) -> HashMap<String, Vec<i8>> {
+    println!("Calculating signatures for {}", pics_root.display());
     let names: Vec<OsString> = fs::read_dir(pics_root.clone()).unwrap()
         .filter(|f| f.as_ref().unwrap().file_type().unwrap().is_file())
         .map(|f| f.unwrap().file_name())
