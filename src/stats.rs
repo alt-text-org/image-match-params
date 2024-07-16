@@ -20,7 +20,7 @@ pub fn check_match_percentages() {
 
 fn calc_sigs_for_pic_dir_files(dir: &str) -> HashMap<String, Vec<i8>> {
     println!("Calculating signatures for {}", dir);
-    let pics_root = Path::new("./tests/pics").join(Path::new(dir));
+    let pics_root = Path::new("./pics").join(Path::new(dir));
     let names: Vec<OsString> = fs::read_dir(pics_root.clone()).unwrap()
         .filter(|f| f.as_ref().unwrap().file_type().unwrap().is_file())
         .map(|f| f.unwrap().file_name())
@@ -28,7 +28,7 @@ fn calc_sigs_for_pic_dir_files(dir: &str) -> HashMap<String, Vec<i8>> {
     let mut files = HashMap::with_capacity(names.len());
     for name in names {
         let path = pics_root.join(Path::new(&name));
-        dbg!(&path);
+        println!("\t{:?}", &path);
         let signature = get_file_signature(path).unwrap();
         files.insert(name.into_string().unwrap(), signature);
     }
