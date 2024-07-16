@@ -4,7 +4,7 @@ use std::fs;
 use std::path::{Path,PathBuf};
 
 use image_match::cosine_similarity;
-use image_match::image::get_file_signature;
+pub use image_match::image::get_file_signature;
 
 pub fn check_match_percentages(dir: &PathBuf) {
     let orig = calc_sigs_for_pic_dir_files(&dir.join("original"));

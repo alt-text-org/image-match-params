@@ -26,6 +26,8 @@ fn main() {
         Commands::Stats { path } => {
             stats::check_match_percentages(&path)
         },
-        Commands::GenSignature { .. } => {}
+        Commands::GenSignature { path } => {
+            println!("{:x?}", stats::get_file_signature(&path))
+        }
     }
 }
