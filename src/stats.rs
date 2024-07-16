@@ -12,10 +12,10 @@ pub fn check_match_percentages() {
     let grown = calc_sigs_for_pic_dir_files("grown");
     let shrunk = calc_sigs_for_pic_dir_files("shrunk");
 
-    evaluate_altered("Cropped", &orig, &cropped);
-    evaluate_altered("Grown", &orig, &grown);
-    evaluate_altered("Shrunk", &orig, &shrunk);
-    evaluate_non_matching(&orig);
+    print_stats("Cropped", evaluate_altered(&orig, &cropped));
+    print_stats("Grown", evaluate_altered(&orig, &grown));
+    print_stats("Shrunk", evaluate_altered(&orig, &shrunk));
+    print_stats("Non-Matching", evaluate_non_matching(&orig));
 }
 
 fn calc_sigs_for_pic_dir_files(dir: &str) -> HashMap<String, Vec<i8>> {
@@ -36,17 +36,17 @@ fn calc_sigs_for_pic_dir_files(dir: &str) -> HashMap<String, Vec<i8>> {
     files
 }
 
-fn evaluate_altered(name: &str, orig: &HashMap<String, Vec<i8>>, altered: &HashMap<String, Vec<i8>>) {
+fn evaluate_altered(orig: &HashMap<String, Vec<i8>>, altered: &HashMap<String, Vec<i8>>) -> Vec<f64> {
     let mut cosines = Vec::with_capacity(orig.len());
     for (file, signature) in orig {
         let altered_sig = altered.get(file).unwrap();
         cosines.push(cosine_similarity(signature, altered_sig));
     }
 
-    print_stats(name, cosines);
+    return cosines
 }
 
-fn evaluate_non_matching(orig: &HashMap<String, Vec<i8>>) {
+fn evaluate_non_matching(orig: &HashMap<String, Vec<i8>>) -> Vec<f64> {
     let mut non_matching = Vec::with_capacity(orig.len() * orig.len());
     for (name, signature) in orig {
         orig.iter().filter(|(n, _)| n != &name)
@@ -54,7 +54,7 @@ fn evaluate_non_matching(orig: &HashMap<String, Vec<i8>>) {
             .for_each(|similarity| non_matching.push(similarity));
     }
 
-    print_stats("Non-Matching", non_matching);
+    return non_matching
 }
 
 fn print_stats(name: &str, mut cosines: Vec<f64>) {
