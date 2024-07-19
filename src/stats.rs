@@ -18,6 +18,22 @@ pub fn check_match_percentages(dir: &PathBuf) {
     print_stats("Non-Matching", evaluate_non_matching(&orig));
 }
 
+pub fn compare_matrix(dir: &PathBuf) -> (Vec<(String, Vec<i8>)>, Vec<Vec<f64>>) {
+    let orig = calc_sigs_for_pic_dir_files(&dir.join("original"));
+    let cropped = calc_sigs_for_pic_dir_files(&dir.join("cropped"));
+    let grown = calc_sigs_for_pic_dir_files(&dir.join("grown"));
+    let shrunk = calc_sigs_for_pic_dir_files(&dir.join("shrunk"));
+
+    let all = [orig, cropped, grown, shrunk];
+    let grid = all.iter().flatten().map(|(_, left)| {
+        all.iter().flatten().map(|(_, right)| {
+            cosine_similarity(left, right)
+        }).collect()
+    }).collect();
+
+    (all.into_iter().flatten().collect(), grid)
+}
+
 fn calc_sigs_for_pic_dir_files(pics_root: &PathBuf) -> HashMap<String, Vec<i8>> {
     println!("Calculating signatures for {}", pics_root.display());
     let names: Vec<OsString> = fs::read_dir(pics_root.clone()).unwrap()
@@ -28,8 +44,8 @@ fn calc_sigs_for_pic_dir_files(pics_root: &PathBuf) -> HashMap<String, Vec<i8>> 
     for name in names {
         let path = pics_root.join(Path::new(&name));
         println!("\t{:?}", &path);
-        let signature = get_file_signature(path).unwrap();
-        files.insert(name.into_string().unwrap(), signature);
+        let signature = get_file_signature(&path).unwrap();
+        files.insert(path.into_os_string().into_string().unwrap(), signature);
     }
 
     files
