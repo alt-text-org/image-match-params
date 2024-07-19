@@ -4,6 +4,8 @@ use std::fs::File;
 use std::io::{Error, ErrorKind};
 
 mod stats;
+mod draw;
+use image_match::image::get_file_signature;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -19,6 +21,10 @@ enum Commands {
     },
     SimilarityGrid {
         path: PathBuf
+    },
+    DrawDebug {
+        path: PathBuf,
+        out_path: PathBuf
     },
     Stats {
         path: PathBuf
@@ -60,8 +66,12 @@ fn main() -> std::io::Result<()> {
             }
             Ok(())
         },
+        Commands::DrawDebug { path, out_path } => {
+            draw::draw_debug(&path, &out_path);
+            Ok(())
+        },
         Commands::GenSignature { path } => {
-            println!("{:x?}", stats::get_file_signature(&path));
+            println!("{:x?}", get_file_signature(&path));
             Ok(())
         }
     }
