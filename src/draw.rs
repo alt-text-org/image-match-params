@@ -4,7 +4,7 @@ use imageproc::drawing;
 use imageproc::rect::Rect;
 use crate::stats::{get_dir_files};
 use image_match::image::{grayscale_image};
-use image_match::{crop_boundaries, grid_points, Bounds};
+use image_match::{crop_boundaries, grid_points, grid_averages};
 use image::io::Reader as ImageReader;
 
 pub fn draw_debug(dir: &PathBuf, out_dir: &PathBuf) {
@@ -17,10 +17,20 @@ pub fn draw_debug(dir: &PathBuf, out_dir: &PathBuf) {
                 .expect("Couldn't open image")
                 .decode()
                 .expect("Couldn't decode image");
+
+    let average_square_width_fn = |width, height| {
+        max(
+            2_usize,
+            (0.5 + min(width, height) as f32 / 20.0).floor() as usize,
+        ) / 2
+    };
+
+
             let gray = grayscale_image(image.clone());
             let bounds = crop_boundaries(&gray, 0.05);
             let points = grid_points(&bounds, 10);
-            let mut out_gray = imageproc::image::GrayImage::from_raw(image.width(), image.height(), gray.into_iter().flatten().collect()).expect("Ahh");
+            let mut out_gray = imageproc::image::GrayImage::from_raw(image.width(), image.height(), gray.clone().into_iter().flatten().collect()).expect("Ahh");
+            let avgs = grid_averages(gray, points.clone(), bounds.clone(), average_square_width_fn);
 
             let width = bounds.upper_x - bounds.lower_x;
             let height = bounds.upper_y - bounds.lower_y;
@@ -43,16 +53,16 @@ pub fn draw_debug(dir: &PathBuf, out_dir: &PathBuf) {
         ) / 2;
 
 
-            for (_, point) in points {
+            for (idx, point) in points {
                 drawing::draw_hollow_circle_mut(&mut out_gray,
                     (point.0 as i32, point.1 as i32), 
                     square_edge.try_into().unwrap(),
                     imageproc::image::Luma([255])
                 );
-                drawing::draw_hollow_circle_mut(&mut out_gray,
+                drawing::draw_filled_circle_mut(&mut out_gray,
                     (point.0 as i32, point.1 as i32), 
                     (square_edge-1).try_into().unwrap(),
-                    imageproc::image::Luma([0])
+                    imageproc::image::Luma([avgs[&idx]])
                 );
             }
             out_gray.save(&dest.join(name)).expect("Coudln't save iamge");
